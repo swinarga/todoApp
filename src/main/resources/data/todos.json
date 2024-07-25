@@ -1,0 +1,19 @@
+{
+  "todos": [
+    {
+      "title": "Learn Spring Boot",
+      "description": "Complete the Spring Boot tutorial",
+      "done": false
+    },
+    {
+      "title": "Develop Todo App",
+      "description": "Create a Todo app with Spring Boot and MongoDB",
+      "done": false
+    },
+    {
+      "title": "Test Application",
+      "description": "Write tests for the Todo application",
+      "done": false
+    }
+  ]
+}
