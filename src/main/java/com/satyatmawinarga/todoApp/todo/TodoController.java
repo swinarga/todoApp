@@ -24,7 +24,8 @@ public class TodoController {
 
     @GetMapping("/{id}")
     public Todo findById(@PathVariable String id) {
-        return todoRepository.findById(id).orElseThrow(() -> new TodoNotFoundException(id));
+        return todoRepository.findById(id)
+                .orElseThrow(() -> new TodoNotFoundException(id));
     }
 
     @ResponseStatus(HttpStatus.CREATED)
