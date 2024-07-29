@@ -4,7 +4,9 @@ package com.satyatmawinarga.todoApp.jwt;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +18,7 @@ import java.security.Key;
 import java.util.Date;
 
 @Component
+@Getter
 public class JwtUtils {
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
@@ -32,6 +35,19 @@ public class JwtUtils {
             return bearerToken.substring(7); // Remove Bearer prefix
         }
         return null;
+    }
+
+    public String getJwtFromCookie(HttpServletRequest request) {
+        String token = null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if (cookie.getName().equals("accessToken")) {
+                    token = cookie.getValue();
+                }
+            }
+        }
+
+        return token;
     }
 
     public String generateTokenFromUsername(UserDetails userDetails) {
