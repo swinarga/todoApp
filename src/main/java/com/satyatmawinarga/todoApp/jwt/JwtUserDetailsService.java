@@ -1,5 +1,6 @@
-package com.satyatmawinarga.todoApp.user;
+package com.satyatmawinarga.todoApp.jwt;
 
+import com.satyatmawinarga.todoApp.user.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
