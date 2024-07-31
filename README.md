@@ -1,6 +1,9 @@
 # Todo App
 
-- https://medium.com/spring-boot/cookie-based-jwt-authentication-with-spring-security-756f70664673
+An app to track, manage, and organize to-dos, as part of learning Spring Boot.
+
+- [x] CRUD functions
+- [ ] Frontend
 
 ## Resources
 
