@@ -1,55 +1,93 @@
 package com.satyatmawinarga.todoApp.todo;
 
+import com.satyatmawinarga.todoApp.user.UserController;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.security.Principal;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/todos")
 public class TodoController {
-
     private final TodoRepository todoRepository;
+
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     public TodoController(TodoRepository todoRepository) {
         this.todoRepository = todoRepository;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("")
     public List<Todo> findAll() {
         return todoRepository.findAll();
     }
 
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/{id}")
-    public Todo findById(@PathVariable String id) {
-        return todoRepository.findById(id)
+    public Todo findById(@PathVariable String id, Principal principal) {
+        String currentUsername = principal.getName();
+
+        logger.debug("Current username: {}", currentUsername);
+        Todo todo = todoRepository.findById(id)
                 .orElseThrow(() -> new TodoNotFoundException(id));
+
+        if (!todo.username().equals(currentUsername)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have " +
+                    "access to this resource");
+        }
+        return todo;
     }
 
+    @PreAuthorize("hasRole('USER')")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("")
-    public void create(@Valid @RequestBody CreateTodo todo) {
-        todoRepository.save(new Todo(null, todo.title(), todo.description(),
+    public void create(@Valid @RequestBody CreateTodo todo, Principal principal) {
+        String currentUsername = principal.getName();
+        todoRepository.save(new Todo(null, currentUsername, todo.title(),
+                todo.description(),
                 todo.done()));
     }
 
+    @PreAuthorize("hasRole('USER')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PutMapping("/{id}")
-    public void update(@Valid @RequestBody UpdateTodo todo, @PathVariable String id) {
-        Optional<Todo> existingTodo = todoRepository.findById(id);
+    public void update(@Valid @RequestBody UpdateTodo todo, @PathVariable String id,
+                       Principal principal) {
+        String currentUsername = principal.getName();
 
-        if (existingTodo.isEmpty()) {
-            throw new TodoNotFoundException(id);
+        Todo existingTodo = todoRepository.findById(id)
+                .orElseThrow(() -> new TodoNotFoundException(id));
+
+        if (!existingTodo.username().equals(currentUsername)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have " +
+                    "access to this resource");
         }
-        Todo updatedTodo = applyUpdates(existingTodo.get(), todo);
+
+        Todo updatedTodo = applyUpdates(existingTodo, todo);
         todoRepository.save(updatedTodo);
     }
 
+    @PreAuthorize("hasRole('USER')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable String id) {
+    public void delete(@PathVariable String id, Principal principal) {
+        String currentUsername = principal.getName();
+
+        Todo todo = todoRepository.findById(id)
+                .orElseThrow(() -> new TodoNotFoundException(id));
+
+        if (!todo.username().equals(currentUsername)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have " +
+                    "access to this resource");
+        }
+
         todoRepository.deleteById(id);
     }
 
@@ -61,6 +99,7 @@ public class TodoController {
 
         return new Todo(
                 existingTodo.id(),
+                existingTodo.username(),
                 title,
                 description,
                 completed
