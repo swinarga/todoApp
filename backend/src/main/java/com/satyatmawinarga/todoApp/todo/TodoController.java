@@ -23,10 +23,13 @@ public class TodoController {
         this.todoRepository = todoRepository;
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("")
-    public List<Todo> findAll() {
-        return todoRepository.findAll();
+    public List<Todo> findAll(Principal principal) {
+        String currentUsername = principal.getName();
+
+        return todoRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new TodoNotFoundException(""));
     }
 
     @PreAuthorize("hasRole('USER')")
